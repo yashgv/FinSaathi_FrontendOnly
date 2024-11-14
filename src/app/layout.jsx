@@ -11,7 +11,7 @@ import {
   UserButton
 } from '@clerk/nextjs'
 
-
+import { ExpenseProvider } from "./context/ExpenseContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -61,7 +61,9 @@ export default function RootLayout({ children }) {
                   enableSystem
                   disableTransitionOnChange
                 >
+                  <ExpenseProvider>
                     {children}
+                  </ExpenseProvider>
                 </ThemeProvider>
         </body>
       </html>

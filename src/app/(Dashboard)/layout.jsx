@@ -1,5 +1,5 @@
-// app/dashboard/layout.jsx
-import React from 'react';
+'use client'
+import React, { useState } from 'react';
 import { UserButton } from "@clerk/nextjs";
 import { 
   LayoutDashboard, 
@@ -9,11 +9,17 @@ import {
   Settings, 
   CreditCard,
   TrendingUp,
-  Wallet 
+  Bot,
+  Wallet,
+  ArrowUpNarrowWide,
+  Menu,
+  X
 } from "lucide-react";
 import Link from "next/link";
-
-
+import { ThemeProvider } from "@/components/theme-provider";
+import { ModeToggle } from '@/components/mode-toggle';
+import Image from 'next/image';
+import finsaathiLogo from "@/assets/finsaathi-logo.png";
 
 const sidebarLinks = [
   {
@@ -23,40 +29,22 @@ const sidebarLinks = [
     color: "text-blue-500"
   },
   {
-    title: "Transactions",
-    href: "/dashboard/transactions",
-    icon: Receipt,
-    color: "text-green-500"
-  },
-  {
-    title: "Savings",
-    href: "/dashboard/savings",
+    title: "Govt. Scheme Advisor",
+    href: "/dashboard/govtSchemeAdvisor",
     icon: PiggyBank,
-    color: "text-purple-500"
+    color: "text-blue-500"
   },
   {
-    title: "Investments",
-    href: "/dashboard/investments",
-    icon: TrendingUp,
-    color: "text-yellow-500"
+    title: "FinBuddy",
+    href: "/dashboard/finBuddy",
+    icon: Bot,
+    color: "text-blue-500"
   },
   {
-    title: "Budget",
-    href: "/dashboard/budget",
-    icon: Wallet,
-    color: "text-red-500"
-  },
-  {
-    title: "Goals",
-    href: "/dashboard/goals",
-    icon: Goal,
-    color: "text-indigo-500"
-  },
-  {
-    title: "Cards",
-    href: "/dashboard/cards",
-    icon: CreditCard,
-    color: "text-pink-500"
+    title: "Reports",
+    href: "/dashboard/reports",
+    icon: ArrowUpNarrowWide,
+    color: "text-blue-500"
   },
   {
     title: "Settings",
@@ -67,72 +55,135 @@ const sidebarLinks = [
 ];
 
 export default function DashboardLayout({ children }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* Sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-64 bg-white border-r border-gray-200">
-        <div className="p-6">
-          <div className="flex items-center gap-2">
-            <PiggyBank className="h-8 w-8 text-blue-600" />
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              SmartSpend
-            </h1>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <div className="min-h-screen flex bg-gray-50">
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:flex md:flex-col md:w-64 bg-white border-r border-gray-200">
+          <div className="p-6">
+            <a href="/">
+              <div className="flex items-center gap-2">
+                <Image alt="logo" src={finsaathiLogo} className="h-8 w-8" />
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Fin<span className="font-['Devanagari']">साथी</span>
+                </h1>
+              </div>
+            </a>
           </div>
-        </div>
-        
-        {/* Navigation Links */}
-        <nav className="flex-1 px-4 pb-4">
-          <div className="space-y-4">
-            {sidebarLinks.map((link) => (
-              <Link 
-                key={link.href}
-                href={link.href}
-                className="flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"
-              >
-                <link.icon className={`h-5 w-5 ${link.color} group-hover:scale-110 transition-transform`} />
-                <span className="text-sm font-medium">{link.title}</span>
-              </Link>
-            ))}
-          </div>
-        </nav>
-        
-        {/* User Profile Section */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-50">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "h-8 w-8"
-                }
-              }}
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                Your Account
-              </p>
+          
+          <nav className="flex-1 px-4 pb-4">
+            <div className="space-y-4">
+              {sidebarLinks.map((link) => (
+                <Link 
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"
+                >
+                  <link.icon className={`h-5 w-5 ${link.color} group-hover:scale-110 transition-transform`} />
+                  <span className="text-sm font-medium">{link.title}</span>
+                </Link>
+              ))}
+            </div>
+          </nav>
+          
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-50">
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "h-8 w-8"
+                  }
+                }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  Your Account
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
-        {/* Mobile Header */}
-        <header className="md:hidden bg-white border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <PiggyBank className="h-6 w-6 text-blue-600" />
-              <span className="font-semibold text-gray-900">SmartSpend</span>
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-h-screen">
+          {/* Mobile Header */}
+          <header className="md:hidden bg-white border-b border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={toggleMobileMenu}
+                  className="p-2 rounded-lg hover:bg-gray-100"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="h-6 w-6 text-gray-600" />
+                  ) : (
+                    <Menu className="h-6 w-6 text-gray-600" />
+                  )}
+                </button>
+                <a href="/">
+                  <div className="flex items-center gap-2">
+                    <Image alt="logo" src={finsaathiLogo} className="h-8 w-8" />
+                    <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      Fin<span className="font-['Devanagari']">साथी</span>
+                    </h1>
+                  </div>
+                </a>
+              </div>
+              <UserButton />
             </div>
-            <UserButton />
-          </div>
-        </header>
+          </header>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
+          {/* Mobile Navigation Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden fixed inset-0 z-50 bg-gray-800 bg-opacity-50">
+              <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg">
+                <div className="flex flex-col h-full">
+                  <div className="p-4 border-b border-gray-200">
+                    <button
+                      onClick={toggleMobileMenu}
+                      className="p-2 rounded-lg hover:bg-gray-100"
+                    >
+                      <X className="h-6 w-6 text-gray-600" />
+                    </button>
+                  </div>
+                  <nav className="flex-1 px-4 py-4">
+                    <div className="space-y-4">
+                      {sidebarLinks.map((link) => (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={toggleMobileMenu}
+                          className="flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"
+                        >
+                          <link.icon className={`h-5 w-5 ${link.color} group-hover:scale-110 transition-transform`} />
+                          <span className="text-sm font-medium">{link.title}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </nav>
+                 
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 }

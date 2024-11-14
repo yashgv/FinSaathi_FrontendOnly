@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button"
 
 import { ArrowRight, Check, Menu } from 'lucide-react';
 import Image from 'next/image';
-import demo from '@/assets/demo1.png';
-import logo from '@/assets/logo.jpeg';
+import demo from '@/assets/demoFinsaathi.png';
+import logo from '@/assets/finsaathi-logo.png';
 import bg from '@/assets/bg.jpg';
 
 import {
@@ -27,6 +27,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 
+import teamIllustration from '@/assets/team-illustration.png';
+
 const HomePage = () => {
  
 
@@ -37,7 +39,7 @@ const HomePage = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2 animate-fadeIn">
               <Image src={logo} alt="Logo" className="w-8 h-8" />
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">TrueSight</span>
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 text-xl">Fin<span className="font-['Devanagari']">साथी</span></span>
             </div>
             <nav className="hidden md:flex items-center space-x-6">
               <a href="/" className="text-foreground font-medium hover:text-primary transition-colors">Home</a>
@@ -65,7 +67,7 @@ const HomePage = () => {
                   </SheetHeader>
                   <div className="mt-6 flex flex-col space-y-4">
                     <a href="/" className="text-foreground font-medium hover:text-primary transition-colors">Home</a>
-                    <a href="/dashboard" className="text-muted-foreground font-medium hover:text-primary transition-colors">FactChecker</a>
+                    <a href="/dashboard" className="text-muted-foreground font-medium hover:text-primary transition-colors">Dashboard</a>
                     <SignedIn>
                       <UserButton />
                     </SignedIn>
@@ -92,13 +94,13 @@ const HomePage = () => {
               </div>
             </a>
             <h1 className="text-5xl sm:text-6xl font-bold">
-              Welcome to <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">TrueSight</span>
+              Welcome to <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">Fin<span className="font-['Devanagari'] text-5xl">साथी</span></span>
             </h1>
             <p className="text-2xl sm:text-3xl text-muted-foreground">
-              Your Ultimate <span className="text-primary font-semibold">Fake News</span> Detection Hub
+              Your Ultimate <span className="text-primary font-semibold">Destination</span> for Financial Advice
             </p>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              In a world where misinformation spreads like wildfire, discerning fact from fiction has never been more crucial.
+            Platform for the Expense Tracking and Government Scheme advisor along with AI Chatbot.
             </p>
             <a
               href="/factchecker"
@@ -114,11 +116,29 @@ const HomePage = () => {
 
           <div className="mt-16 text-center animate-fadeInUp">
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              TrueSight is a cutting-edge solution designed to combat fake news. With high credibility, it helps users verify the authenticity of information. Its intuitive interface ensures ease of use for individuals, media outlets, and social media platforms seeking reliable news sources.
+              Finsaathi is a cutting-edge solution designed to combat fake news. With high credibility, it helps users verify the authenticity of information. Its intuitive interface ensures ease of use for individuals, media outlets, and social media platforms seeking reliable news sources.
             </p>
           </div>
         </section>
-
+        <section className="w-full bg-primary text-white py-16 mt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold">Over 50% of Indians</h2>
+                <p className="text-xl">
+                  remain unaware of government schemes, blocking access to essential support and resources. Increased awareness is crucial for broader benefit reach.
+                </p>
+              </div>
+              <div className="flex justify-center">
+                <Image 
+                  src={teamIllustration}
+                  alt="Government schemes illustration" 
+                  className="rounded-lg shadow-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24">
           <div className="grid md:grid-cols-3 gap-8 animate-fadeInUp">
             {[
@@ -157,10 +177,10 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-2xl font-semibold mb-4">TrueSight</h3>
+              <h3 className="text-2xl font-semibold mb-4">Finsaathi</h3>
               <p className="text-muted-foreground">
-                HackaNova Hackathon, Thakur College, Kandivali<br />
-                16th Feb 2024
+                Mumbai Hacks, Atlas Skilltech, Kurla<br />
+                25th October 2024
               </p>
             </div>
             <div className="flex flex-col items-end">

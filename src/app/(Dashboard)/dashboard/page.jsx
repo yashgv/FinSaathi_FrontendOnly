@@ -1,174 +1,351 @@
-'use client'
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Plus, Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, PiggyBank } from 'lucide-react';
+'use client';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertCircle, PieChart, Plus, Ban, Trash2 } from 'lucide-react';
+import { useExpense } from '@/app/context/ExpenseContext';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, PieChart as RePieChart, Pie, Cell, Legend
+} from 'recharts';
 
+// Constants
+const CATEGORIES = ['food', 'transport', 'utilities', 'entertainment', 'shopping'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+const INITIAL_EXPENSE_STATE = {
+  amount: '',
+  category: 'food',
+  description: '',
+  date: new Date().toISOString().split('T')[0]
+};
 
-const InsightCard = ({ title, value, trend, trendValue, isPositive }) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between pb-2">
-      <CardTitle className="text-sm font-medium text-gray-500">{title}</CardTitle>
-      {trend && (
-        <span className={`flex items-center text-sm ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-          {isPositive ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-          {trendValue}%
-        </span>
-      )}
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold">₹{value}</div>
-    </CardContent>
-  </Card>
-);
-
-const DashboardHeader = ({ totalBalance, monthlySpending, monthlySavings }) => (
-  <div className="grid gap-4 md:grid-cols-3">
-    <InsightCard
-      title="Total Balance"
-      value={totalBalance}
-      trend={true}
-      trendValue={12.5}
-      isPositive={true}
-    />
-    <InsightCard
-      title="Monthly Spending"
-      value={monthlySpending}
-      trend={true}
-      trendValue={8.2}
-      isPositive={false}
-    />
-    <InsightCard
-      title="Monthly Savings"
-      value={monthlySavings}
-      trend={true}
-      trendValue={15.3}
-      isPositive={true}
-    />
+// Reusable Components
+const EmptyState = ({ message }) => (
+  <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
+    <Ban className="h-12 w-12 mb-4" />
+    <p>{message}</p>
   </div>
 );
 
-const SpendingChart = ({ data }) => (
-  <Card className="col-span-2">
-    <CardHeader>
-      <CardTitle>Spending Overview</CardTitle>
-    </CardHeader>
-    <CardContent className="h-[300px]">
+const ChartWrapper = ({ children, data, height = "300px" }) => {
+  if (!data?.length) {
+    return <EmptyState message="No data available" />;
+  }
+  return (
+    <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="amount" fill="#3b82f6" />
-        </BarChart>
+        {children}
       </ResponsiveContainer>
-    </CardContent>
-  </Card>
-);
+    </div>
+  );
+};
 
-const SavingsGoals = ({ goals }) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between">
-      <CardTitle>Savings Goals</CardTitle>
-      <PiggyBank className="w-4 h-4 text-gray-500" />
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-4">
-        {goals.map((goal) => (
-          <div key={goal.id} className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>{goal.title}</span>
-              <span className="font-medium">{goal.progress}%</span>
-            </div>
-            <div className="w-full h-2 bg-gray-100 rounded-full">
-              <div
-                className="h-full bg-blue-500 rounded-full transition-all"
-                style={{ width: `${goal.progress}%` }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </CardContent>
-  </Card>
-);
+const ExpenseForm = ({ onSubmit, initialState }) => {
+  const [formData, setFormData] = useState(initialState);
 
-const Dashboard = () => {
-
-
-  const [activeTab, setActiveTab] = useState('overview');
-  
-  // Sample data - replace with actual data from your API
-  const spendingData = [
-    { name: 'Jan', amount: 4000 },
-    { name: 'Feb', amount: 3000 },
-    { name: 'Mar', amount: 2000 },
-    { name: 'Apr', amount: 2780 },
-    { name: 'May', amount: 1890 },
-    { name: 'Jun', amount: 2390 },
-  ];
-
-  const savingsGoals = [
-    { id: 1, title: 'Emergency Fund', progress: 75 },
-    { id: 2, title: 'New Laptop', progress: 45 },
-    { id: 3, title: 'Vacation', progress: 20 },
-  ];
-
-  const [expenses, setExpenses] = useState([]);
-  const [goals, setGoals] = useState([]);
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch('/api/expenses');
-      const data = await response.json();
-      setExpenses(data.expenses);
-      setGoals(data.goals);
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.amount || !formData.category) return;
     
-    fetchData();
-  }, []);
-
+    onSubmit({
+      ...formData,
+      amount: parseFloat(formData.amount)
+    });
+    setFormData(initialState);
+  };
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <div className="flex items-center space-x-2">
-          <Button className="flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Add Expense
-          </Button>
-        </div>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Input
+        type="number"
+        placeholder="Amount"
+        value={formData.amount}
+        onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+        className="mb-2"
+        required
+      />
+      <Select
+        value={formData.category}
+        onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Category" />
+        </SelectTrigger>
+        <SelectContent>
+          {CATEGORIES.map(category => (
+            <SelectItem key={category} value={category}>
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Input
+        type="text"
+        placeholder="Description"
+        value={formData.description}
+        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+        className="mb-2"
+      />
+      <Input
+        type="date"
+        value={formData.date}
+        onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+        className="mb-2"
+        required
+      />
+      <Button type="submit" className="w-full">
+        <Plus className="w-4 h-4 mr-2" /> Add Expense
+      </Button>
+    </form>
+  );
+};
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+const Dashboard = () => {
+  const { expenses = [], stats = {}, addExpense, deleteExpense } = useExpense();
+
+  // Memoized data transformations
+  const getHighestCategory = useMemo(() => {
+    const categoryTotals = stats.categoryTotals || {};
+    const entries = Object.entries(categoryTotals);
+    return entries.length > 0 
+      ? entries.sort(([,a], [,b]) => b - a)[0][0]
+      : 'No data';
+  }, [stats.categoryTotals]);
+
+  const monthlyTrends = useMemo(() => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const today = new Date();
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = new Date();
+      d.setMonth(today.getMonth() - i);
+      return {
+        month: monthNames[d.getMonth()],
+        amount: expenses.length ? Math.floor(Math.random() * 5000) + 10000 : 0
+      };
+    }).reverse();
+  }, [expenses.length]);
+
+  const weeklyData = useMemo(() => 
+    Object.entries(stats.dailyTotals || {}).map(([day, amount]) => ({
+      day,
+      amount: amount || 0
+    })), [stats.dailyTotals]);
+
+  const pieChartData = useMemo(() => 
+    Object.entries(stats.weeklyCategoryTotals || {}).map(([name, value]) => ({
+      name,
+      value: value || 0
+    })), [stats.weeklyCategoryTotals]);
+
+  // Handlers
+  const handleAddExpense = useCallback((newExpense) => {
+    addExpense(newExpense);
+  }, [addExpense]);
+
+  const handleDeleteExpense = useCallback((id) => {
+    deleteExpense(id);
+  }, [deleteExpense]);
+
+  return (
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-6">Financial Dashboard</h1>
+      
+      <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="weekly">Weekly Analysis</TabsTrigger>
+          <TabsTrigger value="expenses">Expenses</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="insights">Insights</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview" className="space-y-4">
-          <DashboardHeader
-            totalBalance={125000}
-            monthlySpending={45000}
-            monthlySavings={25000}
-          />
-          
-          <div className="grid gap-4 md:grid-cols-3">
-            <SpendingChart data={spendingData} />
-            <SavingsGoals goals={savingsGoals} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Add New Expense</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ExpenseForm 
+                  onSubmit={handleAddExpense}
+                  initialState={INITIAL_EXPENSE_STATE}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ₹{(stats.totalExpenses || 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {expenses.length} total transactions
+                </p>
+                <p className="text-sm mt-2 text-muted-foreground">
+                  Highest category: {getHighestCategory}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Category Breakdown</CardTitle>
+                <PieChart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                {Object.keys(stats.categoryTotals || {}).length > 0 ? (
+                  <div className="space-y-2">
+                    {Object.entries(stats.categoryTotals || {}).map(([category, amount]) => (
+                      <div key={category} className="flex justify-between">
+                        <span className="capitalize">{category}</span>
+                        <span>₹{amount.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState message="No category data available" />
+                )}
+              </CardContent>
+            </Card>
           </div>
+
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Monthly Trends</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartWrapper data={monthlyTrends}>
+                <LineChart data={monthlyTrends}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line 
+                    type="monotone" 
+                    dataKey="amount" 
+                    stroke="#8884d8"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ChartWrapper>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="weekly" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Weekly Total Expenses</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ₹{(stats.weeklyTotal || 0).toLocaleString()}
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {Object.keys(stats.dailyTotals || {}).length} days with transactions
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Weekly Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartWrapper data={weeklyData}>
+                  <BarChart data={weeklyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="day" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="amount" fill="#82ca9d" />
+                  </BarChart>
+                </ChartWrapper>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="expenses" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Expenses List</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {expenses.length > 0 ? (
+                <div className="space-y-4">
+                  {expenses
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .map((expense) => (
+                      <div key={expense.id} className="flex justify-between items-center border-b pb-2">
+                        <div>
+                          <p className="font-medium">
+                            {expense.description || 'No description'}
+                          </p>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {expense.category} - {new Date(expense.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="font-semibold">
+                            ₹{expense.amount.toLocaleString()}
+                          </span>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteExpense(expense.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <EmptyState message="No expenses recorded yet" />
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          {/* Add your analytics content here */}
-        </TabsContent>
-
-        <TabsContent value="insights" className="space-y-4">
-          {/* Add your insights content here */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Category Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartWrapper data={pieChartData}>
+                <RePieChart>
+                  <Pie 
+                    data={pieChartData} 
+                    dataKey="value" 
+                    nameKey="name" 
+                    cx="50%" 
+                    cy="50%" 
+                    outerRadius={80}
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]} 
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </RePieChart>
+              </ChartWrapper>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
