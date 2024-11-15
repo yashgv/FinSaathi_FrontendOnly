@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button"
 
 import { ArrowRight, Check, Menu } from 'lucide-react';
 import Image from 'next/image';
-// import demo from '@/assets/demoFinsaathi.png';
+import demo from '@/assets/demoFinsaathi.png';
 import logo from '@/assets/finsaathi-logo.png';
-// import bg from '@/assets/bg.jpg';
+import bg from '@/assets/bg.jpg';
 
 import {
   ClerkProvider,
@@ -111,7 +111,7 @@ const HomePage = () => {
           </div>
 
           <div className="mt-16 animate-fadeInUp">
-            <Image src="@/assets/demoFinSaathi.png" alt="TrueSight Demo" className="" />
+            <Image src={demo} alt="TrueSight Demo" className="" />
           </div>
 
           <div className="mt-16 text-center animate-fadeInUp">
