@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button"
 
 import { ArrowRight, Check, Menu } from 'lucide-react';
 import Image from 'next/image';
-import demo from '@/assets/demoFinsaathi.png';
+// import demo from '@/assets/demoFinsaathi.png';
 import logo from '@/assets/finsaathi-logo.png';
-import bg from '@/assets/bg.jpg';
+// import bg from '@/assets/bg.jpg';
 
 import {
   ClerkProvider,
