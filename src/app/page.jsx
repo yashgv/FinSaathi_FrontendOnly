@@ -111,7 +111,7 @@ const HomePage = () => {
           </div>
 
           <div className="mt-16 animate-fadeInUp">
-            <Image src={demo} alt="TrueSight Demo" className="" />
+            <Image src="@/assets/demoFinSaathi.png" alt="TrueSight Demo" className="" />
           </div>
 
           <div className="mt-16 text-center animate-fadeInUp">
