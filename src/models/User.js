@@ -16,9 +16,6 @@ const UserSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   profileImageUrl: String,
-  metadata: {
-    type: mongoose.Schema.Types.Mixed
-  }
 }, { 
   timestamps: true 
 });
