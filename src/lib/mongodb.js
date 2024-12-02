@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
 
-async function testConnection() {
+async function dbConnect() {
   try {
     const client = new MongoClient(uri);
     await client.connect();
@@ -13,4 +13,4 @@ async function testConnection() {
   }
 }
 
-testConnection();
+dbConnect();
