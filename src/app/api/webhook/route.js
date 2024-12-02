@@ -1,41 +1,27 @@
-// pages/api/webhook/user.js
+// src/app/api/webhook/route.js
+import { NextResponse } from 'next/server';
 import { Webhook } from 'svix';
-import { buffer } from 'micro';
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 
-export const config = {
-  api: {
-    bodyParser: false
-  }
-};
-
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
-
+export async function POST(req) {
   const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
-  const payload = await buffer(req);
-  const headers = req.headers;
-
-  const wh = new Svix.Webhook(webhookSecret);
-  let evt;
+  
+  // Verify webhook
+  const payload = await req.text();
+  const headers = Object.fromEntries(req.headers);
 
   try {
-    evt = wh.verify(payload, headers);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
+    const wh = new Webhook(webhookSecret);
+    const evt = wh.verify(payload, headers);
 
-  await dbConnect();
+    await dbConnect();
 
-  switch (evt.type) {
-    case 'user.created':
-    case 'user.updated':
-      const { id, email_addresses, first_name, last_name, profile_image_url, ...metadata } = evt.data;
+    switch (evt.type) {
+      case 'user.created':
+      case 'user.updated':
+        const { id, email_addresses, first_name, last_name, profile_image_url } = evt.data;
 
-      try {
         await User.findOneAndUpdate(
           { clerkId: id },
           {
@@ -44,27 +30,18 @@ export default async function handler(req, res) {
             firstName: first_name,
             lastName: last_name,
             profileImageUrl: profile_image_url,
-            metadata: metadata
           },
           { upsert: true, new: true }
         );
+        break;
 
-        res.status(200).json({ message: 'User synced successfully' });
-      } catch (error) {
-        res.status(500).json({ error: 'Failed to sync user' });
-      }
-      break;
-
-    case 'user.deleted':
-      try {
+      case 'user.deleted':
         await User.findOneAndDelete({ clerkId: evt.data.id });
-        res.status(200).json({ message: 'User deleted successfully' });
-      } catch (error) {
-        res.status(500).json({ error: 'Failed to delete user' });
-      }
-      break;
+        break;
+    }
 
-    default:
-      res.status(400).json({ error: 'Unhandled event type' });
+    return NextResponse.json({ message: 'Webhook processed' }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }
